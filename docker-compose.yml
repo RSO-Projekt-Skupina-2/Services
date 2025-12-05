@@ -24,5 +24,18 @@ services:
         condition: service_started
     restart: on-failure
 
+  likes-service:
+    build: ./likes
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/microservices
+      NODE_ENV: development
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: on-failure
+
 volumes:
   postgres_data:
