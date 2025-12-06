@@ -1,7 +1,22 @@
-import { app } from "./start";
+import { app, initializeApp } from "./start";
+import { PostService } from "./postsService";
 
-const PORT : number = 8080;
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-app.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`);
-});
+
+async function bootstrap() {
+  try {
+    // Initialize database
+    await initializeApp();
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`Posts service listening on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start application:", error);
+    process.exit(1);
+  }
+}
+
+bootstrap();
