@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microhub-posts
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: microhub-posts
+  template:
+    metadata:
+      labels:
+        app: microhub-posts
+    spec:
+      containers:
+        - name: microhub-posts
+          image: microhubacr.azurecr.io/microhub-posts-microservice:2.2
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microhub-posts-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: microhub-posts
+  ports:
+    - port: 80
+      targetPort: 8080
