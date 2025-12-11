@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: microhub-posts
-          image: microhubacr.azurecr.io/microhub-posts-microservice:2.2
+          image: microhubacr.azurecr.io/microhub-posts-microservice:3.0
           ports:
             - containerPort: 8080
 ---
@@ -23,9 +23,9 @@ kind: Service
 metadata:
   name: microhub-posts-service
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: microhub-posts
   ports:
-    - port: 80
+    - port: 8080
       targetPort: 8080
