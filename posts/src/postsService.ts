@@ -18,6 +18,14 @@ export class PostService {
             topics: ["cloud", "rso"]
         };
 
-        return [mockPost1, mockPost2];
+        const mockPost3: Post = {
+            id: 2,
+            text: "Today is a good day",
+            author: "J",
+            title: "Third Post",
+            topics: ["azure", "kubernetes"]
+        };
+
+        return [mockPost1, mockPost2, mockPost3];
     }
 }
