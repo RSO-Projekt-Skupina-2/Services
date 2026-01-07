@@ -1,7 +1,7 @@
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -19,6 +19,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/microservices
       NODE_ENV: development
       PORT: 3000
+      USERS_SERVICE_URL: http://users-service:3002
     depends_on:
       postgres:
         condition: service_started
@@ -32,6 +33,21 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/microservices
       NODE_ENV: development
       PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: on-failure
+
+  users-service:
+    build: ./users
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/microservices
+      NODE_ENV: development
+      PORT: 3002
+      JWT_SECRET: your-secret-key-change-in-production
+      JWT_EXPIRES_IN: 24h
     depends_on:
       postgres:
         condition: service_started
