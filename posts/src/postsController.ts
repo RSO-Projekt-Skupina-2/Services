@@ -48,8 +48,17 @@ postsController.get(
     res: Response<Post[] | string>
   ) => {
     try {
+      const { topic } = req.query;
       const posts = await postService.getPosts();
-      res.status(200).send(posts);
+      
+      if (topic) {
+        const filteredPosts = posts.filter(post => 
+          post.topics.some(t => t.toLowerCase().includes(topic.toLowerCase()))
+        );
+        res.status(200).send(filteredPosts);
+      } else {
+        res.status(200).send(posts);
+      }
     } catch (e: any) {
       res.status(500).send(e.message);
     }
