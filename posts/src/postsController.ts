@@ -15,7 +15,7 @@ interface AuthTokenPayload {
   email: string;
 }
 
-const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || "http://users-service:3002";
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
 async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
   try {

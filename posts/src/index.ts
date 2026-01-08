@@ -1,7 +1,7 @@
 import { app, initializeApp } from "./start";
 import { PostService } from "./postsService";
 
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
 
 async function bootstrap() {

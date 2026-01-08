@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: microhub-posts
+  namespace: ingress
 spec:
   replicas: 2
   selector:
@@ -14,14 +15,20 @@ spec:
     spec:
       containers:
         - name: microhub-posts
-          image: microhubacr.azurecr.io/microhub-posts-microservice:3.0
+          image: microhubacr.azurecr.io/microhub-posts:5.5
           ports:
             - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@microhub-postgres.ingress.svc.cluster.local:5432/microservices
+            - name: USERS_SERVICE_URL
+              value: http://9.235.155.69
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: microhub-posts-service
+  namespace: ingress
 spec:
   type: ClusterIP
   selector:

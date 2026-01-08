@@ -2,7 +2,7 @@ import { PostModel } from './db/post.db';
 import { Post } from './postsModels';
 import axios from 'axios';
 
-const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://users-service:3002';
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
 export class PostService {
     private async getUserName(userId: number): Promise<string> {
