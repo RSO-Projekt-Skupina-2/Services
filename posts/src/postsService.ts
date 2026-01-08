@@ -1,31 +1,59 @@
+import { PostModel } from './db/post.db';
 import { Post } from './postsModels';
+import axios from 'axios';
+
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://users-service:3002';
 
 export class PostService {
+    private async getUserName(userId: number): Promise<string> {
+        try {
+            const response = await axios.get(`${USERS_SERVICE_URL}/users/${userId}`);
+            return response.data.username || String(userId);
+        } catch (error) {
+            console.error(`Failed to fetch username for user ${userId}:`, error);
+            return String(userId);
+        }
+    }
+
     async getPosts(): Promise<Post[]> {
-        const mockPost1: Post = {
-            id: 1,
-            text: "Post content",
-            author: "M",
-            title: "First Post",
-            topics: ["technology", "programming"]
-        };
+        const posts = await PostModel.findAll({
+            order: [["createdAt", "DESC"]]
+        });
+        
+        const postsWithUsernames = await Promise.all(
+            posts.map(async (post) => {
+                const authorName = await this.getUserName(post.author);
+                return {
+                    id: post.id,
+                    title: post.title,
+                    text: post.text,
+                    author: post.author,
+                    authorName,
+                    topics: post.topics || []
+                };
+            })
+        );
+        
+        return postsWithUsernames;
+    }
 
-        const mockPost2: Post = {
-            id: 2,
-            text: "This post was created with CI/CD",
-            author: "J",
-            title: "Second Post",
-            topics: ["cloud", "rso"]
-        };
+    async createPost(title: string, text: string, author: number, topics?: string[]): Promise<Post> {
+        const post = await PostModel.create({
+            title,
+            text,
+            author,
+            topics: topics || []
+        });
 
-        const mockPost3: Post = {
-            id: 2,
-            text: "Today is a good day",
-            author: "J",
-            title: "Third Post",
-            topics: ["azure", "kubernetes"]
-        };
+        const authorName = await this.getUserName(author);
 
-        return [mockPost1, mockPost2, mockPost3];
+        return {
+            id: post.id,
+            title: post.title,
+            text: post.text,
+            author: post.author,
+            authorName,
+            topics: post.topics || []
+        };
     }
 }

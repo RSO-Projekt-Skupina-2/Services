@@ -1,8 +1,6 @@
 import { app, initializeApp } from "./start";
-import { PostService } from "./postsService";
 
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-
+const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3002;
 
 async function bootstrap() {
   try {
@@ -11,7 +9,7 @@ async function bootstrap() {
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`Posts service listening on port ${PORT}`);
+      console.log(`Users service listening on port ${PORT}`);
     });
   } catch (error) {
     console.error("Failed to start application:", error);

@@ -1,5 +1,5 @@
 import express from "express";
-import { postsController } from "./postsController";
+import { usersController } from "./usersController";
 import cors from "cors";
 import { initDB } from "./db/conn";
 
@@ -12,7 +12,7 @@ app.use(
   })
 );
 app.use(express.json());
-app.use("/posts", postsController);
+app.use("/users", usersController);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
