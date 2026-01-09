@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: microhub-likes
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: microhub-likes
+  namespaceSelector:
+    matchNames:
+      - ingress
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

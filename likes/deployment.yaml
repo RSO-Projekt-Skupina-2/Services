@@ -18,16 +18,17 @@ spec:
           image: microhubacr.azurecr.io/microhub-likes:5.3
           ports:
             - containerPort: 3001
+              name: http
           livenessProbe:
             httpGet:
               path: /health
-              port: 3001
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /ready
-              port: 3001
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 1
@@ -46,5 +47,6 @@ spec:
   selector:
     app: microhub-likes
   ports:
-    - port: 3001
+    - name: http
+      port: 3001
       targetPort: 3001
