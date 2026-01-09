@@ -16,7 +16,11 @@ app.use("/users", usersController);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+  res.status(200).json({
+    status: "ok",
+    service: "microhub-users",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Initialize database on startup
