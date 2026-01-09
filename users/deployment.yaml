@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microhub-users
+  namespace: ingress
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: microhub-users
+  template:
+    metadata:
+      labels:
+        app: microhub-users
+    spec:
+      containers:
+        - name: microhub-users
+          image: microhubacr.azurecr.io/microhub-users:5.3
+          ports:
+            - containerPort: 3002
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@microhub-postgres.ingress.svc.cluster.local:5432/microservices
+            - name: JWT_SECRET
+              value: your-secret-key-change-in-production
+            - name: JWT_EXPIRES_IN
+              value: 24h
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microhub-users-service
+  namespace: ingress
+spec:
+  type: ClusterIP
+  selector:
+    app: microhub-users
+  ports:
+    - port: 3002
+      targetPort: 3002

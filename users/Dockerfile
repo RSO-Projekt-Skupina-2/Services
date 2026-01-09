@@ -1,20 +1,29 @@
-# Use Node.js LTS version
-FROM node:20-alpine
+# --- Build stage ---
+FROM node:18-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Install dependencies
 COPY package*.json ./
-
-# Install all dependencies (including dev dependencies for ts-node-dev)
 RUN npm install
 
-# Copy source code
-COPY . .
+# Copy the source code
+COPY tsconfig.json .
+COPY src ./src
 
-# Expose port
+# Build TypeScript -> JavaScript
+RUN npx tsc
+
+# --- Runtime stage ---
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy compiled JS and node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY package*.json ./
+
 EXPOSE 3002
 
-# Start the application
-CMD ["npm", "run", "dev"]
+CMD ["node", "dist/index.js"]
