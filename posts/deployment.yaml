@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: microhub-posts
-          image: microhubacr.azurecr.io/microhub-posts:5.5
+          image: microhubacr.azurecr.io/microhub-posts:7.0
           ports:
             - containerPort: 8080
               name: http
