@@ -2,6 +2,7 @@ import express from "express";
 import { usersController } from "./usersController";
 import cors from "cors";
 import { initDB } from "./db/conn";
+import { conn } from "./db/conn";
 
 export const app = express();
 
@@ -22,6 +23,27 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Readiness endpoint
+app.get("/ready", async (req, res) => {
+  try {
+    await conn.query("SELECT 1"); 
+
+    res.status(200).json({
+      status: "ready",
+      service: "microhub-users",
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error("Readiness check failed:", err);
+    res.status(503).json({
+      status: "not ready",
+      service: "microhub-users",
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 
 // Initialize database on startup
 export async function initializeApp() {
