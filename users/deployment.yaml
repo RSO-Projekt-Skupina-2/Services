@@ -18,16 +18,17 @@ spec:
           image: microhubacr.azurecr.io/microhub-users:6.0
           ports:
             - containerPort: 3002
+              name: http
           livenessProbe:
             httpGet:
               path: /health
-              port: 3002
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /ready
-              port: 3002
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 1
@@ -50,5 +51,6 @@ spec:
   selector:
     app: microhub-users
   ports:
-    - port: 3002
+    - name: http
+      port: 3002
       targetPort: 3002
