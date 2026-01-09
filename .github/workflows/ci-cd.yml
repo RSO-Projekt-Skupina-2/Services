@@ -1,4 +1,4 @@
-name: CI/CD for AKS for microservices
+name: CI/CD for MicroHub microservices
 
 on:
   push:
@@ -6,7 +6,9 @@ on:
       - main
 
 env:
-  IMAGE_NAME: microhub-posts
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  IMAGE_TAG: ${{ github.sha }}
+  NAMESPACE: microhub
 
 jobs:
   deploy:
@@ -22,21 +24,61 @@ jobs:
         ${{ secrets.ACR_LOGIN_SERVER }} \
         -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
-    - name: Build Docker image
+    # ------------------------
+    # Build & push posts image
+    # ------------------------
+    - name: Build & Push posts image
       run: |
-        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ./posts
+        docker build -t $ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG} ./posts
+        docker push $ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG}
 
-    - name: Push Docker image
+    # ------------------------
+    # Build & push users image
+    # ------------------------
+    - name: Build & Push users image
       run: |
-        docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker build -t $ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG} ./users
+        docker push $ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG}
 
+    # ------------------------
+    # Build & push likes image
+    # ------------------------
+    - name: Build & Push likes image
+      run: |
+        docker build -t $ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG} ./likes
+        docker push $ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG}
+
+    # ------------------------
+    # Setup kubeconfig
+    # ------------------------
     - name: Setup kubeconfig
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > ~/.kube/config
 
-    - name: Deploy to Kubernetes
+    # ------------------------
+    # Deploy posts
+    # ------------------------
+    - name: Deploy posts
       run: |
         kubectl set image deployment/microhub-posts \
-        microhub-posts=${{ secrets.ACR_LOGIN_SERVER }}/microhub-posts:${{ github.sha }} \
-        -n ingress
+        microhub-posts=$ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG} \
+        -n $NAMESPACE
+
+    # ------------------------
+    # Deploy users
+    # ------------------------
+    - name: Deploy users
+      run: |
+        kubectl set image deployment/microhub-users \
+        microhub-users=$ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG} \
+        -n $NAMESPACE
+
+    # ------------------------
+    # Deploy likes
+    # ------------------------
+    - name: Deploy likes
+      run: |
+        kubectl set image deployment/microhub-likes \
+        microhub-likes=$ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG} \
+        -n $NAMESPACE
