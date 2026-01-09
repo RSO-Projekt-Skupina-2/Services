@@ -18,6 +18,20 @@ spec:
           image: microhubacr.azurecr.io/microhub-likes:5.3
           ports:
             - containerPort: 3001
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 3
           env:
             - name: DATABASE_URL
               value: postgresql://postgres:postgres@microhub-postgres.ingress.svc.cluster.local:5432/microservices

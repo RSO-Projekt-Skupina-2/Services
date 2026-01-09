@@ -44,7 +44,6 @@ app.get("/ready", async (req, res) => {
   }
 });
 
-
 // Initialize database on startup
 export async function initializeApp() {
   try {
