@@ -3,6 +3,7 @@ import { postsController } from "./postsController";
 import cors from "cors";
 import { initDB } from "./db/conn";
 import { conn } from "./db/conn";
+import { metricsMiddleware, metricsEndpoint } from './metrics';
 
 export const app = express();
 
@@ -14,6 +15,10 @@ app.use(
 );
 app.use(express.json());
 app.use("/posts", postsController);
+
+// Metrics endpoint
+app.use(metricsMiddleware);
+metricsEndpoint(app);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
