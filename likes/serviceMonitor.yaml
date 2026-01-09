@@ -3,6 +3,8 @@ kind: ServiceMonitor
 metadata:
   name: microhub-likes
   namespace: monitoring
+  labels:
+    release: monitoring
 spec:
   selector:
     matchLabels:

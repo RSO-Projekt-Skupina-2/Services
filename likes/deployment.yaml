@@ -42,6 +42,8 @@ kind: Service
 metadata:
   name: microhub-likes-service
   namespace: ingress
+  labels:
+    app: microhub-likes
 spec:
   type: ClusterIP
   selector:

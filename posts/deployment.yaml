@@ -44,6 +44,8 @@ kind: Service
 metadata:
   name: microhub-posts-service
   namespace: ingress
+  labels:
+    app: microhub-posts
 spec:
   type: ClusterIP
   selector:
