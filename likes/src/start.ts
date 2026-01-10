@@ -4,8 +4,52 @@ import cors from "cors";
 import { initDB } from "./db/conn";
 import { conn } from "./db/conn";
 import { metricsMiddleware, metricsEndpoint } from './metrics';
+import swaggerUi from "swagger-ui-express";
 
 export const app = express();
+
+const swaggerSpec = {
+  openapi: "3.0.3",
+  info: {
+    title: "MicroHub Likes API",
+    version: "1.0.0",
+  },
+  paths: {
+    "/likes/post/{postId}/status": {
+      get: {
+        summary: "Get like count and status for a post",
+        parameters: [
+          { in: "path", name: "postId", required: true, schema: { type: "integer" } },
+        ],
+        responses: { 200: { description: "Status returned" }, 400: { description: "Invalid id" } },
+      },
+    },
+    "/likes/user/count": {
+      get: {
+        summary: "Count likes given by current user",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Count returned" } },
+      },
+    },
+    "/likes": {
+      post: {
+        summary: "Add like",
+        security: [{ bearerAuth: [] }],
+        responses: { 201: { description: "Like created" }, 409: { description: "Already liked" } },
+      },
+      delete: {
+        summary: "Remove like",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Removed" }, 404: { description: "Not found" } },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+    },
+  },
+};
 
 app.use(
   cors({
@@ -15,6 +59,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/likes", likesController);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Metrics endpoint
 app.use(metricsMiddleware);

@@ -4,8 +4,77 @@ import cors from "cors";
 import { initDB } from "./db/conn";
 import { conn } from "./db/conn";
 import { metricsMiddleware, metricsEndpoint } from './metrics';
+import swaggerUi from "swagger-ui-express";
 
 export const app = express();
+
+const swaggerSpec = {
+  openapi: "3.0.3",
+  info: {
+    title: "MicroHub Posts API",
+    version: "1.0.0",
+  },
+  paths: {
+    "/posts": {
+      get: {
+        summary: "List posts",
+        parameters: [
+          {
+            in: "query",
+            name: "topic",
+            schema: { type: "string" },
+            description: "Optional topic filter",
+          },
+        ],
+        responses: {
+          200: { description: "Array of posts" },
+        },
+      },
+      post: {
+        summary: "Create post",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          201: { description: "Post created" },
+          400: { description: "Validation or moderation error" },
+        },
+      },
+    },
+    "/posts/count/mine": {
+      get: {
+        summary: "Count posts of current user",
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: "Count returned" } },
+      },
+    },
+    "/posts/{id}": {
+      delete: {
+        summary: "Delete own post",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            in: "path",
+            name: "id",
+            required: true,
+            schema: { type: "integer" },
+          },
+        ],
+        responses: {
+          200: { description: "Deleted" },
+          404: { description: "Not found or unauthorized" },
+        },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+  },
+};
 
 app.use(
   cors({
@@ -15,6 +84,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/posts", postsController);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Metrics endpoint
 app.use(metricsMiddleware);

@@ -2,8 +2,29 @@ import express from "express";
 import { moderationController } from "./moderationController";
 import cors from "cors";
 import { metricsMiddleware, metricsEndpoint } from './metrics';
+import swaggerUi from "swagger-ui-express";
 
 export const app = express();
+
+const swaggerSpec = {
+  openapi: "3.0.3",
+  info: {
+    title: "MicroHub Moderation API",
+    version: "1.0.0",
+  },
+  paths: {
+    "/moderation/check": {
+      post: {
+        summary: "Moderate content",
+        requestBody: { required: true },
+        responses: {
+          200: { description: "Moderation result" },
+          400: { description: "Validation error" },
+        },
+      },
+    },
+  },
+};
 
 app.use(
   cors({
@@ -13,6 +34,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/moderation", moderationController);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Metrics endpoint
 app.use(metricsMiddleware);
