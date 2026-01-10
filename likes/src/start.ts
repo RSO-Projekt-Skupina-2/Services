@@ -18,29 +18,51 @@ const swaggerSpec = {
     "/likes/post/{postId}/status": {
       get: {
         summary: "Get like count and status for a post",
+        security: [{ bearerAuth: [] }],
         parameters: [
           { in: "path", name: "postId", required: true, schema: { type: "integer" } },
         ],
-        responses: { 200: { description: "Status returned" }, 400: { description: "Invalid id" } },
+        responses: {
+          200: { description: "Status returned" },
+          400: { description: "Invalid id" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/likes/user/count": {
       get: {
         summary: "Count likes given by current user",
         security: [{ bearerAuth: [] }],
-        responses: { 200: { description: "Count returned" } },
+        responses: {
+          200: { description: "Count returned" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/likes": {
       post: {
         summary: "Add like",
         security: [{ bearerAuth: [] }],
-        responses: { 201: { description: "Like created" }, 409: { description: "Already liked" } },
+        responses: {
+          201: { description: "Like created" },
+          400: { description: "Validation error" },
+          401: { description: "Unauthorized" },
+          409: { description: "Already liked" },
+          500: { description: "Server error" }
+        },
       },
       delete: {
         summary: "Remove like",
         security: [{ bearerAuth: [] }],
-        responses: { 200: { description: "Removed" }, 404: { description: "Not found" } },
+        responses: {
+          200: { description: "Removed" },
+          400: { description: "Validation error" },
+          401: { description: "Unauthorized" },
+          404: { description: "Not found" },
+          500: { description: "Server error" }
+        },
       },
     },
   },

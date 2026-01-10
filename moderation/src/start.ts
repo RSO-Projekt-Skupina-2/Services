@@ -20,6 +20,7 @@ const swaggerSpec = {
         responses: {
           200: { description: "Moderation result" },
           400: { description: "Validation error" },
+          500: { description: "Server error" }
         },
       },
     },

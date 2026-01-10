@@ -20,6 +20,7 @@ const swaggerSpec = {
         responses: {
           200: { description: "Profile summary returned" },
           401: { description: "Unauthorized" },
+          500: { description: "Server error" }
         },
       },
     },

@@ -18,20 +18,32 @@ const swaggerSpec = {
     "/users/register": {
       post: {
         summary: "Register user",
-        responses: { 201: { description: "Created" }, 400: { description: "Validation error" } },
+        responses: {
+          201: { description: "Created" },
+          400: { description: "Validation error" }
+        },
       },
     },
     "/users/login": {
       post: {
         summary: "Login",
-        responses: { 200: { description: "JWT issued" }, 401: { description: "Invalid credentials" } },
+        responses: {
+          200: { description: "JWT issued" },
+          400: { description: "Missing required fields" },
+          401: { description: "Invalid credentials" }
+        },
       },
     },
     "/users/me": {
       get: {
         summary: "Get current user",
         security: [{ bearerAuth: [] }],
-        responses: { 200: { description: "User returned" }, 401: { description: "Unauthorized" } },
+        responses: {
+          200: { description: "User returned" },
+          401: { description: "Unauthorized" },
+          404: { description: "User not found" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/users/{id}": {
@@ -40,13 +52,22 @@ const swaggerSpec = {
         parameters: [
           { in: "path", name: "id", required: true, schema: { type: "integer" } },
         ],
-        responses: { 200: { description: "User returned" }, 404: { description: "Not found" } },
+        responses: {
+          200: { description: "User returned" },
+          400: { description: "Invalid user ID" },
+          404: { description: "Not found" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/users/verify": {
       post: {
         summary: "Verify JWT",
-        responses: { 200: { description: "Valid token" }, 401: { description: "Invalid token" } },
+        responses: {
+          200: { description: "Valid token" },
+          400: { description: "Token is required" },
+          401: { description: "Invalid token" }
+        },
       },
     },
   },

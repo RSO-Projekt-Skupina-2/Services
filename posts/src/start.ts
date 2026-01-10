@@ -28,6 +28,7 @@ const swaggerSpec = {
         ],
         responses: {
           200: { description: "Array of posts" },
+          500: { description: "Server error" }
         },
       },
       post: {
@@ -36,6 +37,8 @@ const swaggerSpec = {
         responses: {
           201: { description: "Post created" },
           400: { description: "Validation or moderation error" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
         },
       },
     },
@@ -43,7 +46,11 @@ const swaggerSpec = {
       get: {
         summary: "Count posts of current user",
         security: [{ bearerAuth: [] }],
-        responses: { 200: { description: "Count returned" } },
+        responses: {
+          200: { description: "Count returned" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/posts/{id}": {
@@ -60,7 +67,10 @@ const swaggerSpec = {
         ],
         responses: {
           200: { description: "Deleted" },
+          400: { description: "Invalid post ID" },
+          401: { description: "Unauthorized" },
           404: { description: "Not found or unauthorized" },
+          500: { description: "Server error" }
         },
       },
     },

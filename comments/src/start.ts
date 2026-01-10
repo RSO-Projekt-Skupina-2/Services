@@ -21,7 +21,11 @@ const swaggerSpec = {
         parameters: [
           { in: "path", name: "postId", required: true, schema: { type: "integer" } },
         ],
-        responses: { 200: { description: "Array of comments" }, 400: { description: "Invalid id" } },
+        responses: {
+          200: { description: "Array of comments" },
+          400: { description: "Invalid id" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/comments": {
@@ -31,6 +35,8 @@ const swaggerSpec = {
         responses: {
           201: { description: "Comment created" },
           400: { description: "Validation or moderation error" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
         },
       },
     },
@@ -41,14 +47,24 @@ const swaggerSpec = {
         parameters: [
           { in: "path", name: "id", required: true, schema: { type: "integer" } },
         ],
-        responses: { 200: { description: "Deleted" }, 404: { description: "Not found" } },
+        responses: {
+          200: { description: "Deleted" },
+          400: { description: "Invalid comment ID" },
+          401: { description: "Unauthorized" },
+          404: { description: "Not found" },
+          500: { description: "Server error" }
+        },
       },
     },
     "/comments/user/count": {
       get: {
         summary: "Count comments of current user",
         security: [{ bearerAuth: [] }],
-        responses: { 200: { description: "Count returned" } },
+        responses: {
+          200: { description: "Count returned" },
+          401: { description: "Unauthorized" },
+          500: { description: "Server error" }
+        },
       },
     },
   },
