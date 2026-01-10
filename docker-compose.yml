@@ -53,6 +53,28 @@ services:
         condition: service_started
     restart: on-failure
 
+  profile-service:
+    build: ./profile
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      USERS_SERVICE_URL: http://users-service:3002
+      POSTS_SERVICE_URL: http://posts-service:3000
+      LIKES_SERVICE_URL: http://likes-service:3001
+      COMMENTS_SERVICE_URL: http://comments-service:3003
+    depends_on:
+      users-service:
+        condition: service_started
+      posts-service:
+        condition: service_started
+      likes-service:
+        condition: service_started
+      comments-service:
+        condition: service_started
+    restart: on-failure
+
   users-service:
     build: ./users
     ports:

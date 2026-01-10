@@ -34,4 +34,8 @@ export class LikeService {
 
     return deleted > 0;
   }
+
+  async countByUser(userId: number): Promise<number> {
+    return LikeModel.count({ where: { userId } });
+  }
 }

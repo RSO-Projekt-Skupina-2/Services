@@ -63,4 +63,8 @@ export class CommentService {
         await comment.destroy();
         return true;
     }
+
+    async countByUser(userId: number): Promise<number> {
+        return CommentModel.count({ where: { userId } });
+    }
 }

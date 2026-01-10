@@ -93,6 +93,27 @@ postsController.post(
   }
 );
 
+postsController.get(
+  "/count/mine",
+  authenticate,
+  async (
+    req: AuthedRequest,
+    res: Response<{ count: number } | string>
+  ) => {
+    try {
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
+      const count = await postService.countByAuthor(req.user.id);
+      res.status(200).send({ count });
+    } catch (e: any) {
+      res.status(500).send(e.message);
+    }
+  }
+);
+
 postsController.delete(
   "/:id",
   authenticate,

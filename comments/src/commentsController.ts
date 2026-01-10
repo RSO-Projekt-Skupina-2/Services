@@ -126,3 +126,24 @@ commentsController.delete(
     }
   }
 );
+
+// Get how many comments current user has made
+commentsController.get(
+  "/user/count",
+  authenticate,
+  async (
+    req: AuthedRequest,
+    res: Response<{ count: number } | string>
+  ) => {
+    try {
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+      const count = await commentService.countByUser(req.user.id);
+      res.status(200).send({ count });
+    } catch (e: any) {
+      res.status(500).send(e.message);
+    }
+  }
+);

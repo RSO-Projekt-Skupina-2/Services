@@ -58,6 +58,27 @@ likesController.get(
   }
 );
 
+// Get how many likes current user has given
+likesController.get(
+  "/user/count",
+  authenticate,
+  async (
+    req: AuthedRequest,
+    res: Response<{ count: number } | string>
+  ) => {
+    try {
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+      const count = await likeService.countByUser(req.user.id);
+      res.status(200).send({ count });
+    } catch (e: any) {
+      res.status(500).send(e.message);
+    }
+  }
+);
+
 // Get like status for current user
 likesController.get(
   "/post/:postId/status",

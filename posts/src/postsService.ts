@@ -57,6 +57,10 @@ export class PostService {
         };
     }
 
+    async countByAuthor(authorId: number): Promise<number> {
+        return PostModel.count({ where: { author: authorId } });
+    }
+
     async deletePost(postId: number, userId: number): Promise<boolean> {
         const post = await PostModel.findByPk(postId);
         
