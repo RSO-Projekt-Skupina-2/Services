@@ -38,6 +38,20 @@ services:
         condition: service_started
     restart: on-failure
 
+  comments-service:
+    build: ./comments
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/microservices
+      NODE_ENV: development
+      PORT: 3003
+      USERS_SERVICE_URL: http://users-service:3002
+    depends_on:
+      postgres:
+        condition: service_started
+    restart: on-failure
+
   users-service:
     build: ./users
     ports:
