@@ -1,10 +1,45 @@
-import express, { Router, Request, Response } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
+import axios from "axios";
 import { LikeService } from "./likesService";
 import { Like } from "./likesModels";
 
 const likeService: LikeService = new LikeService();
 
 export const likesController: Router = express.Router();
+
+type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
+
+interface AuthTokenPayload {
+  id: number;
+  username: string;
+  email: string;
+}
+
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
+
+async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Missing or invalid Authorization header" });
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const verifyRes = await axios.post(`${USERS_SERVICE_URL}/users/verify`, { token });
+
+    if (!verifyRes.data?.valid || !verifyRes.data?.user) {
+      res.status(401).json({ error: "Token verification failed" });
+      return;
+    }
+
+    req.user = verifyRes.data.user as AuthTokenPayload;
+    next();
+  } catch (error: any) {
+    const message = error?.response?.data?.error || error?.message || "Authentication failed";
+    res.status(401).json({ error: message });
+  }
+}
 
 // Get like count for a post
 likesController.get(
@@ -23,22 +58,60 @@ likesController.get(
   }
 );
 
-// Add a like
-likesController.post(
-  "/",
+// Get like status for current user
+likesController.get(
+  "/post/:postId/status",
+  authenticate,
   async (
-    req: Request<{}, {}, { postId: number; userId: number }>,
-    res: Response<Like | string>
+    req: AuthedRequest<{ postId: string }>,
+    res: Response<{ count: number; liked: boolean } | string>
   ) => {
     try {
-      const { postId, userId } = req.body;
-
-      if (!postId || !userId) {
-        res.status(400).send("Missing required fields: postId, userId");
+      const postId = parseInt(req.params.postId);
+      if (isNaN(postId)) {
+        res.status(400).send("Invalid post ID");
         return;
       }
 
-      const like = await likeService.addLike(postId, userId);
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
+      const [count, liked] = await Promise.all([
+        likeService.getLikeCount(postId),
+        likeService.hasUserLiked(postId, req.user.id),
+      ]);
+
+      res.status(200).send({ count, liked });
+    } catch (e: any) {
+      res.status(500).send(e.message);
+    }
+  }
+);
+
+// Add a like
+likesController.post(
+  "/",
+  authenticate,
+  async (
+    req: AuthedRequest<{}, {}, { postId: number }>,
+    res: Response<Like | string>
+  ) => {
+    try {
+      const { postId } = req.body;
+
+      if (!postId) {
+        res.status(400).send("Missing required fields: postId");
+        return;
+      }
+
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
+      const like = await likeService.addLike(postId, req.user.id);
       res.status(201).send(like);
     } catch (e: any) {
       // Handle duplicate like (unique constraint violation)
@@ -54,19 +127,25 @@ likesController.post(
 // Remove a like
 likesController.delete(
   "/",
+  authenticate,
   async (
-    req: Request<{}, {}, { postId: number; userId: number }>,
+    req: AuthedRequest<{}, {}, { postId: number }>,
     res: Response<{ success: boolean } | string>
   ) => {
     try {
-      const { postId, userId } = req.body;
+      const { postId } = req.body;
 
-      if (!postId || !userId) {
-        res.status(400).send("Missing required fields: postId, userId");
+      if (!postId) {
+        res.status(400).send("Missing required fields: postId");
         return;
       }
 
-      const removed = await likeService.removeLike(postId, userId);
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
+      const removed = await likeService.removeLike(postId, req.user.id);
       if (removed) {
         res.status(200).send({ success: true });
       } else {

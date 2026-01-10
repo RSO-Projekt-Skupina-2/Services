@@ -8,6 +8,11 @@ export class LikeService {
     });
   }
 
+  async hasUserLiked(postId: number, userId: number): Promise<boolean> {
+    const existing = await LikeModel.findOne({ where: { postId, userId } });
+    return Boolean(existing);
+  }
+
   async addLike(postId: number, userId: number): Promise<Like> {
     const like = await LikeModel.create({
       postId,

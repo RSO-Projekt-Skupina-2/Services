@@ -27,10 +27,12 @@ LikeModel.init(
     postId: {
       type: DataTypes.BIGINT,
       allowNull: false,
+      unique: "post_user_unique",
     },
     userId: {
       type: DataTypes.BIGINT,
       allowNull: false,
+      unique: "post_user_unique",
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -39,5 +41,12 @@ LikeModel.init(
   },
   {
     sequelize: conn,
+    indexes: [
+      {
+        unique: true,
+        fields: ["postId", "userId"],
+        name: "post_user_unique",
+      },
+    ],
   }
 );
