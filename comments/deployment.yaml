@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: microhub-likes
+  name: microhub-comments
   namespace: ingress
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: microhub-likes
+      app: microhub-comments
   template:
     metadata:
       labels:
-        app: microhub-likes
+        app: microhub-comments
     spec:
       containers:
-        - name: microhub-likes
-          image: microhubacr.azurecr.io/microhub-likes:7.0
+        - name: microhub-comments
+          image: microhubacr.azurecr.io/microhub-comments:7.0
           ports:
-            - containerPort: 3001
+            - containerPort: 3003
               name: http
           livenessProbe:
             httpGet:
@@ -40,15 +40,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: microhub-likes-service
+  name: microhub-comments-service
   namespace: ingress
   labels:
-    app: microhub-likes
+    app: microhub-comments
 spec:
   type: ClusterIP
   selector:
-    app: microhub-likes
+    app: microhub-comments
   ports:
     - name: http
-      port: 3001
-      targetPort: 3001
+      port: 3003
+      targetPort: 3003

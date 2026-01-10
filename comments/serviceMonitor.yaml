@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: microhub-comments
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: microhub-comments
+  namespaceSelector:
+    matchNames:
+      - ingress
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

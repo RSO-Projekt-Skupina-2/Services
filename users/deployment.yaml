@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: microhub-users
-          image: microhubacr.azurecr.io/microhub-users:6.0
+          image: microhubacr.azurecr.io/microhub-users:7.0
           ports:
             - containerPort: 3002
               name: http
