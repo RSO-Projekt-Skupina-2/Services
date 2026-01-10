@@ -92,3 +92,37 @@ postsController.post(
     }
   }
 );
+
+postsController.delete(
+  "/:id",
+  authenticate,
+  async (
+    req: AuthedRequest<{ id: string }>,
+    res: Response<{ message: string } | string>
+  ) => {
+    try {
+      const postId = parseInt(req.params.id);
+      
+      if (isNaN(postId)) {
+        res.status(400).send("Invalid post ID");
+        return;
+      }
+
+      if (!req.user?.id) {
+        res.status(401).send("Unauthorized");
+        return;
+      }
+
+      const deleted = await postService.deletePost(postId, req.user.id);
+      
+      if (!deleted) {
+        res.status(404).send("Post not found or unauthorized");
+        return;
+      }
+
+      res.status(200).send({ message: "Post deleted successfully" });
+    } catch (e: any) {
+      res.status(500).send(e.message);
+    }
+  }
+);

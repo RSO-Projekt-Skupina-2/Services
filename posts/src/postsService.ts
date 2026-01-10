@@ -56,4 +56,19 @@ export class PostService {
             topics: post.topics || []
         };
     }
+
+    async deletePost(postId: number, userId: number): Promise<boolean> {
+        const post = await PostModel.findByPk(postId);
+        
+        if (!post) {
+            return false;
+        }
+        
+        if (post.author !== userId) {
+            return false;
+        }
+        
+        await post.destroy();
+        return true;
+    }
 }
