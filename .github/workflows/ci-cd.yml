@@ -25,28 +25,37 @@ jobs:
         -u ${{ secrets.ACR_USERNAME }} --password-stdin
 
     # ------------------------
-    # Build & push posts image
+    # Build & push images
     # ------------------------
     - name: Build & Push posts image
       run: |
         docker build -t $ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG} ./posts
         docker push $ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG}
 
-    # ------------------------
-    # Build & push users image
-    # ------------------------
     - name: Build & Push users image
       run: |
         docker build -t $ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG} ./users
         docker push $ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG}
 
-    # ------------------------
-    # Build & push likes image
-    # ------------------------
     - name: Build & Push likes image
       run: |
         docker build -t $ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG} ./likes
         docker push $ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG}
+
+    - name: Build & Push comments image
+      run: |
+        docker build -t $ACR_LOGIN_SERVER/microhub-comments:${IMAGE_TAG} ./comments
+        docker push $ACR_LOGIN_SERVER/microhub-comments:${IMAGE_TAG}
+
+    - name: Build & Push profile image
+      run: |
+        docker build -t $ACR_LOGIN_SERVER/microhub-profile:${IMAGE_TAG} ./profile
+        docker push $ACR_LOGIN_SERVER/microhub-profile:${IMAGE_TAG}
+
+    - name: Build & Push moderation image
+      run: |
+        docker build -t $ACR_LOGIN_SERVER/microhub-moderation:${IMAGE_TAG} ./moderation
+        docker push $ACR_LOGIN_SERVER/microhub-moderation:${IMAGE_TAG}
 
     # ------------------------
     # Setup kubeconfig
@@ -57,7 +66,7 @@ jobs:
         echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > ~/.kube/config
 
     # ------------------------
-    # Deploy posts
+    # Deploy services
     # ------------------------
     - name: Deploy posts
       run: |
@@ -65,20 +74,32 @@ jobs:
         microhub-posts=$ACR_LOGIN_SERVER/microhub-posts:${IMAGE_TAG} \
         -n $NAMESPACE
 
-    # ------------------------
-    # Deploy users
-    # ------------------------
     - name: Deploy users
       run: |
         kubectl set image deployment/microhub-users \
         microhub-users=$ACR_LOGIN_SERVER/microhub-users:${IMAGE_TAG} \
         -n $NAMESPACE
 
-    # ------------------------
-    # Deploy likes
-    # ------------------------
     - name: Deploy likes
       run: |
         kubectl set image deployment/microhub-likes \
         microhub-likes=$ACR_LOGIN_SERVER/microhub-likes:${IMAGE_TAG} \
+        -n $NAMESPACE
+
+    - name: Deploy comments
+      run: |
+        kubectl set image deployment/microhub-comments \
+        microhub-comments=$ACR_LOGIN_SERVER/microhub-comments:${IMAGE_TAG} \
+        -n $NAMESPACE
+
+    - name: Deploy profile
+      run: |
+        kubectl set image deployment/microhub-profile \
+        microhub-profile=$ACR_LOGIN_SERVER/microhub-profile:${IMAGE_TAG} \
+        -n $NAMESPACE
+
+    - name: Deploy moderation
+      run: |
+        kubectl set image deployment/microhub-moderation \
+        microhub-moderation=$ACR_LOGIN_SERVER/microhub-moderation:${IMAGE_TAG} \
         -n $NAMESPACE
