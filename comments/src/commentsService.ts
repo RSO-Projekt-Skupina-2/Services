@@ -3,6 +3,7 @@ import { CommentModel } from './db/comment.db';
 import { Comment } from './commentsModels';
 
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
+const MODERATION_SERVICE_URL = process.env.MODERATION_SERVICE_URL;
 
 async function getUserName(userId: number): Promise<string> {
   try {
@@ -11,6 +12,33 @@ async function getUserName(userId: number): Promise<string> {
   } catch (error) {
     console.error(`Failed to fetch username for user ${userId}:`, error);
     return String(userId);
+  }
+}
+
+async function moderateContent(content: string): Promise<void> {
+  if (!MODERATION_SERVICE_URL) {
+    console.warn('MODERATION_SERVICE_URL not configured, skipping moderation');
+    return;
+  }
+
+  try {
+    const response = await axios.post(`${MODERATION_SERVICE_URL}/moderation/check`, {
+      content,
+      contentType: 'comment'
+    }, { timeout: 5000 });
+
+    if (!response.data.approved) {
+      throw new Error('Your comment contains inappropriate content and cannot be published.');
+    }
+  } catch (error: any) {
+    // If moderation service is unavailable, log but don't block (graceful degradation)
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      console.warn('Moderation service unavailable:', error.message);
+      return;
+    }
+    
+    // For flagged content or API errors, throw to prevent commenting
+    throw error;
   }
 }
 
@@ -38,6 +66,9 @@ export class CommentService {
     }
 
     async createComment(postId: number, userId: number, text: string): Promise<Comment> {
+        // Moderate the comment content before creating
+        await moderateContent(text);
+
         const comment = await CommentModel.create({ postId, userId, text });
         const authorName = await getUserName(userId);
 

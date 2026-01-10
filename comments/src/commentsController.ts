@@ -73,20 +73,25 @@ commentsController.post(
   authenticate,
   async (
     req: AuthedRequest<{}, {}, { postId: number; text: string }>,
-    res: Response<Comment | string>
+    res: Response<Comment | { error: string }>
   ) => {
     try {
       const { postId, text } = req.body;
 
       if (!postId || !text) {
-        res.status(400).send("Missing required fields: postId, text");
+        res.status(400).json({ error: "Missing required fields: postId, text" });
         return;
       }
 
       const comment = await commentService.createComment(postId, req.user!.id, text);
       res.status(201).send(comment);
     } catch (e: any) {
-      res.status(500).send(e.message);
+      // Check if it's a moderation error
+      if (e.message.includes('flagged') || e.message.includes('inappropriate')) {
+        res.status(400).json({ error: e.message });
+      } else {
+        res.status(500).json({ error: e.message });
+      }
     }
   }
 );

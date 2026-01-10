@@ -3,6 +3,7 @@ import { PostModel } from './db/post.db';
 import { Post } from './postsModels';
 
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
+const MODERATION_SERVICE_URL = process.env.MODERATION_SERVICE_URL;
 
 async function getUserName(userId: number): Promise<string> {
   try {
@@ -11,6 +12,33 @@ async function getUserName(userId: number): Promise<string> {
   } catch (error) {
     console.error(`Failed to fetch username for user ${userId}:`, error);
     return String(userId);
+  }
+}
+
+async function moderateContent(content: string): Promise<void> {
+  if (!MODERATION_SERVICE_URL) {
+    console.warn('MODERATION_SERVICE_URL not configured, skipping moderation');
+    return;
+  }
+
+  try {
+    const response = await axios.post(`${MODERATION_SERVICE_URL}/moderation/check`, {
+      content,
+      contentType: 'post'
+    }, { timeout: 5000 });
+
+    if (!response.data.approved) {
+      throw new Error('Your post contains inappropriate content and cannot be published.');
+    }
+  } catch (error: any) {
+    // If moderation service is unavailable, log but don't block (graceful degradation)
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      console.warn('Moderation service unavailable:', error.message);
+      return;
+    }
+    
+    // For flagged content or API errors, throw to prevent posting
+    throw error;
   }
 }
 
@@ -39,6 +67,9 @@ export class PostService {
     }
 
     async createPost(title: string, text: string, author: number, topics?: string[]): Promise<Post> {
+        // Moderate both title and text in a single request
+        await moderateContent(`${title}\n${text}`);
+
         const post = await PostModel.create({
             title,
             text,

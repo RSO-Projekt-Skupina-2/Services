@@ -74,20 +74,25 @@ postsController.post(
   authenticate,
   async (
     req: AuthedRequest<{}, {}, { title: string; text: string; topics?: string[] }>,
-    res: Response<Post | string>
+    res: Response<Post | { error: string }>
   ) => {
     try {
       const { title, text, topics } = req.body;
 
       if (!title || !text) {
-        res.status(400).send("Missing required fields: title, text");
+        res.status(400).json({ error: "Missing required fields: title, text" });
         return;
       }
 
       const post = await postService.createPost(title, text, req.user!.id, topics);
       res.status(201).send(post);
     } catch (e: any) {
-      res.status(500).send(e.message);
+      // Check if it's a moderation error
+      if (e.message.includes('flagged') || e.message.includes('inappropriate')) {
+        res.status(400).json({ error: e.message });
+      } else {
+        res.status(500).json({ error: e.message });
+      }
     }
   }
 );
