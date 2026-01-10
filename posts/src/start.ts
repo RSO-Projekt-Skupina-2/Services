@@ -17,45 +17,195 @@ const swaggerSpec = {
   paths: {
     "/posts": {
       get: {
-        summary: "List posts",
+        summary: "List all posts with optional topic filter",
+        tags: ["Posts"],
         parameters: [
           {
             in: "query",
             name: "topic",
             schema: { type: "string" },
-            description: "Optional topic filter",
-          },
+            description: "Optional topic to filter posts"
+          }
         ],
         responses: {
-          200: { description: "Array of posts" },
-          500: { description: "Server error" }
-        },
+          200: {
+            description: "Array of posts",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "number" },
+                      title: { type: "string" },
+                      text: { type: "string" },
+                      author: { type: "number" },
+                      authorName: { type: "string" },
+                      topics: { type: "array", items: { type: "string" } }
+                    }
+                  }
+                },
+                example: [
+                  {
+                    id: 1,
+                    title: "My First Post",
+                    text: "This is the content of my first post",
+                    author: 1,
+                    authorName: "john_doe",
+                    topics: ["technology", "javascript"]
+                  },
+                  {
+                    id: 2,
+                    title: "Another Post",
+                    text: "More content here",
+                    author: 2,
+                    authorName: "jane_smith",
+                    topics: ["design"]
+                  }
+                ]
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
       },
       post: {
-        summary: "Create post",
+        summary: "Create a new post",
+        tags: ["Posts"],
         security: [{ bearerAuth: [] }],
-        responses: {
-          201: { description: "Post created" },
-          400: { description: "Validation or moderation error" },
-          401: { description: "Unauthorized" },
-          500: { description: "Server error" }
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["title", "text"],
+                properties: {
+                  title: { type: "string", minLength: 1 },
+                  text: { type: "string", minLength: 1 },
+                  topics: { type: "array", items: { type: "string" } }
+                }
+              },
+              example: {
+                title: "My First Post",
+                text: "This is the content of my first post",
+                topics: ["technology", "javascript"]
+              }
+            }
+          }
         },
-      },
+        responses: {
+          201: {
+            description: "Post created successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    title: { type: "string" },
+                    text: { type: "string" },
+                    author: { type: "number" },
+                    topics: { type: "array", items: { type: "string" } }
+                  }
+                },
+                example: {
+                  id: 1,
+                  title: "My First Post",
+                  text: "This is the content of my first post",
+                  author: 1,
+                  topics: ["technology", "javascript"]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Validation or moderation error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                examples: {
+                  missing_fields: { value: { error: "Missing required fields: title, text" } },
+                  moderation_flagged: { value: { error: "Content was flagged as inappropriate" } }
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
     },
     "/posts/count/mine": {
       get: {
-        summary: "Count posts of current user",
+        summary: "Count posts created by current user",
+        tags: ["Posts"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Count returned" },
-          401: { description: "Unauthorized" },
-          500: { description: "Server error" }
-        },
-      },
+          200: {
+            description: "Post count returned",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    count: { type: "number" }
+                  }
+                },
+                example: { count: 5 }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
     },
     "/posts/{id}": {
       delete: {
         summary: "Delete own post",
+        tags: ["Posts"],
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -63,27 +213,73 @@ const swaggerSpec = {
             name: "id",
             required: true,
             schema: { type: "integer" },
-          },
+            description: "Post ID to delete"
+          }
         ],
         responses: {
-          200: { description: "Deleted" },
-          400: { description: "Invalid post ID" },
-          401: { description: "Unauthorized" },
-          404: { description: "Not found or unauthorized" },
-          500: { description: "Server error" }
-        },
-      },
-    },
+          200: {
+            description: "Post deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: { type: "string" }
+                  }
+                },
+                example: { message: "Post deleted successfully" }
+              }
+            }
+          },
+          400: {
+            description: "Invalid post ID",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Invalid post ID" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          404: {
+            description: "Post not found or user not authorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Post not found or unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   components: {
     securitySchemes: {
       bearerAuth: {
         type: "http",
         scheme: "bearer",
-        bearerFormat: "JWT",
-      },
-    },
-  },
+        bearerFormat: "JWT"
+      }
+    }
+  }
 };
 
 app.use(

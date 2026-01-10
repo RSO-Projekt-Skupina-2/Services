@@ -17,60 +17,272 @@ const swaggerSpec = {
   paths: {
     "/likes/post/{postId}/status": {
       get: {
-        summary: "Get like count and status for a post",
+        summary: "Get like count and current user's like status for a post",
+        tags: ["Likes"],
         security: [{ bearerAuth: [] }],
         parameters: [
-          { in: "path", name: "postId", required: true, schema: { type: "integer" } },
+          {
+            in: "path",
+            name: "postId",
+            required: true,
+            schema: { type: "integer" },
+            description: "Post ID"
+          }
         ],
         responses: {
-          200: { description: "Status returned" },
-          400: { description: "Invalid id" },
-          401: { description: "Unauthorized" },
-          500: { description: "Server error" }
-        },
-      },
+          200: {
+            description: "Like status and count",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    count: { type: "number" },
+                    liked: { type: "boolean" }
+                  }
+                },
+                examples: {
+                  liked: { value: { count: 5, liked: true } },
+                  not_liked: { value: { count: 3, liked: false } }
+                }
+              }
+            }
+          },
+          400: {
+            description: "Invalid post ID",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Invalid post ID" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
     },
     "/likes/user/count": {
       get: {
         summary: "Count likes given by current user",
+        tags: ["Likes"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Count returned" },
-          401: { description: "Unauthorized" },
-          500: { description: "Server error" }
-        },
-      },
+          200: {
+            description: "Like count",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    count: { type: "number" }
+                  }
+                },
+                example: { count: 8 }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
     },
     "/likes": {
       post: {
-        summary: "Add like",
+        summary: "Like a post",
+        tags: ["Likes"],
         security: [{ bearerAuth: [] }],
-        responses: {
-          201: { description: "Like created" },
-          400: { description: "Validation error" },
-          401: { description: "Unauthorized" },
-          409: { description: "Already liked" },
-          500: { description: "Server error" }
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["postId"],
+                properties: {
+                  postId: { type: "number" }
+                }
+              },
+              example: {
+                postId: 1
+              }
+            }
+          }
         },
+        responses: {
+          201: {
+            description: "Like created successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    postId: { type: "number" },
+                    userId: { type: "number" },
+                    createdAt: { type: "string", format: "date-time" }
+                  }
+                },
+                example: {
+                  id: 1,
+                  postId: 1,
+                  userId: 2,
+                  createdAt: "2026-01-10T12:30:00.000Z"
+                }
+              }
+            }
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Missing required fields: postId" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          409: {
+            description: "Conflict - User has already liked this post",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "User has already liked this post" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
       },
       delete: {
-        summary: "Remove like",
+        summary: "Remove a like from a post",
+        tags: ["Likes"],
         security: [{ bearerAuth: [] }],
-        responses: {
-          200: { description: "Removed" },
-          400: { description: "Validation error" },
-          401: { description: "Unauthorized" },
-          404: { description: "Not found" },
-          500: { description: "Server error" }
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["postId"],
+                properties: {
+                  postId: { type: "number" }
+                }
+              },
+              example: {
+                postId: 1
+              }
+            }
+          }
         },
-      },
-    },
+        responses: {
+          200: {
+            description: "Like removed successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" }
+                  }
+                },
+                example: { success: true }
+              }
+            }
+          },
+          400: {
+            description: "Validation error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Missing required fields: postId" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          404: {
+            description: "Like not found",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Like not found" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Internal server error" }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   components: {
     securitySchemes: {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
-    },
-  },
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
+    }
+  }
 };
 
 app.use(

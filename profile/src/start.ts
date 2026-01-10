@@ -15,21 +15,63 @@ const swaggerSpec = {
   paths: {
     "/profile/me": {
       get: {
-        summary: "Get aggregated profile summary",
+        summary: "Get aggregated profile summary for current user",
+        tags: ["Profile"],
         security: [{ bearerAuth: [] }],
         responses: {
-          200: { description: "Profile summary returned" },
-          401: { description: "Unauthorized" },
-          500: { description: "Server error" }
-        },
-      },
-    },
+          200: {
+            description: "Profile summary with aggregated stats",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    id: { type: "number" },
+                    username: { type: "string" },
+                    email: { type: "string" },
+                    postsCount: { type: "number" },
+                    likesGivenCount: { type: "number" },
+                    commentsCount: { type: "number" }
+                  }
+                },
+                example: {
+                  id: 1,
+                  username: "john_doe",
+                  email: "john@example.com",
+                  postsCount: 5,
+                  likesGivenCount: 8,
+                  commentsCount: 12
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Unauthorized" }
+              }
+            }
+          },
+          500: {
+            description: "Server error",
+            content: {
+              "application/json": {
+                schema: { type: "object", properties: { error: { type: "string" } } },
+                example: { error: "Failed to load profile" }
+              }
+            }
+          }
+        }
+      }
+    }
   },
   components: {
     securitySchemes: {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
-    },
-  },
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
+    }
+  }
 };
 
 app.use(
