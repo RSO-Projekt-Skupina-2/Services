@@ -4,10 +4,7 @@ import { CommentService } from "./commentsService";
 import { Comment } from "./commentsModels";
 
 const commentService: CommentService = new CommentService();
-
 export const commentsController: Router = express.Router();
-
-type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
 
 interface AuthTokenPayload {
   id: number;
@@ -15,9 +12,16 @@ interface AuthTokenPayload {
   email: string;
 }
 
+type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = 
+  Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
+
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
-async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
+async function authenticate(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -79,12 +83,7 @@ commentsController.post(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const comment = await commentService.createComment(postId, req.user.id, text);
+      const comment = await commentService.createComment(postId, req.user!.id, text);
       res.status(201).send(comment);
     } catch (e: any) {
       res.status(500).send(e.message);
@@ -108,12 +107,7 @@ commentsController.delete(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const deleted = await commentService.deleteComment(commentId, req.user.id);
+      const deleted = await commentService.deleteComment(commentId, req.user!.id);
 
       if (!deleted) {
         res.status(404).send("Comment not found or unauthorized");
@@ -136,11 +130,7 @@ commentsController.get(
     res: Response<{ count: number } | string>
   ) => {
     try {
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-      const count = await commentService.countByUser(req.user.id);
+      const count = await commentService.countByUser(req.user!.id);
       res.status(200).send({ count });
     } catch (e: any) {
       res.status(500).send(e.message);

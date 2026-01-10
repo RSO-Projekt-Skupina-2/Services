@@ -13,7 +13,12 @@ export class LikeService {
     return Boolean(existing);
   }
 
-  async addLike(postId: number, userId: number): Promise<Like> {
+  async addLike(postId: number, userId: number): Promise<Like | null> {
+    const existing = await LikeModel.findOne({ where: { postId, userId } });
+    if (existing) {
+      return null;
+    }
+
     const like = await LikeModel.create({
       postId,
       userId,

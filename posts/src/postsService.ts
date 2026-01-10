@@ -1,19 +1,20 @@
+import axios from 'axios';
 import { PostModel } from './db/post.db';
 import { Post } from './postsModels';
-import axios from 'axios';
 
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
+async function getUserName(userId: number): Promise<string> {
+  try {
+    const response = await axios.get(`${USERS_SERVICE_URL}/users/${userId}`);
+    return response.data.username || String(userId);
+  } catch (error) {
+    console.error(`Failed to fetch username for user ${userId}:`, error);
+    return String(userId);
+  }
+}
+
 export class PostService {
-    private async getUserName(userId: number): Promise<string> {
-        try {
-            const response = await axios.get(`${USERS_SERVICE_URL}/users/${userId}`);
-            return response.data.username || String(userId);
-        } catch (error) {
-            console.error(`Failed to fetch username for user ${userId}:`, error);
-            return String(userId);
-        }
-    }
 
     async getPosts(): Promise<Post[]> {
         const posts = await PostModel.findAll({
@@ -22,7 +23,7 @@ export class PostService {
         
         const postsWithUsernames = await Promise.all(
             posts.map(async (post) => {
-                const authorName = await this.getUserName(post.author);
+                const authorName = await getUserName(post.author);
                 return {
                     id: post.id,
                     title: post.title,
@@ -45,7 +46,7 @@ export class PostService {
             topics: topics || []
         });
 
-        const authorName = await this.getUserName(author);
+        const authorName = await getUserName(author);
 
         return {
             id: post.id,

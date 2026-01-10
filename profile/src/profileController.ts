@@ -11,11 +11,16 @@ interface AuthTokenPayload {
   email: string;
 }
 
-type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
+type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = 
+  Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
 
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
-async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
+async function authenticate(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -32,7 +37,6 @@ async function authenticate(req: AuthedRequest, res: Response, next: NextFunctio
     }
 
     req.user = verifyRes.data.user as AuthTokenPayload;
-    (req as any).token = token;
     next();
   } catch (error: any) {
     const message = error?.response?.data?.error || error?.message || "Authentication failed";
@@ -45,7 +49,7 @@ profileController.get(
   authenticate,
   async (req: AuthedRequest, res: Response) => {
     try {
-      const token = (req as any).token as string;
+      const token = req.headers.authorization?.substring(7) || "";
       const profile = await profileService.getProfile(token);
       res.status(200).json(profile);
     } catch (e: any) {

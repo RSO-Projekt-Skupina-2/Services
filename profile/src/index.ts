@@ -1,6 +1,6 @@
 import { app, initializeApp } from "./start";
 
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 3004;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3004;
 
 async function bootstrap() {
   try {

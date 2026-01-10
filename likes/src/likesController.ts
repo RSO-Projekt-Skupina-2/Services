@@ -4,10 +4,7 @@ import { LikeService } from "./likesService";
 import { Like } from "./likesModels";
 
 const likeService: LikeService = new LikeService();
-
 export const likesController: Router = express.Router();
-
-type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
 
 interface AuthTokenPayload {
   id: number;
@@ -15,9 +12,16 @@ interface AuthTokenPayload {
   email: string;
 }
 
+type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = 
+  Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
+
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
-async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
+async function authenticate(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -67,11 +71,7 @@ likesController.get(
     res: Response<{ count: number } | string>
   ) => {
     try {
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-      const count = await likeService.countByUser(req.user.id);
+      const count = await likeService.countByUser(req.user!.id);
       res.status(200).send({ count });
     } catch (e: any) {
       res.status(500).send(e.message);
@@ -94,14 +94,9 @@ likesController.get(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
       const [count, liked] = await Promise.all([
         likeService.getLikeCount(postId),
-        likeService.hasUserLiked(postId, req.user.id),
+        likeService.hasUserLiked(postId, req.user!.id),
       ]);
 
       res.status(200).send({ count, liked });
@@ -127,20 +122,14 @@ likesController.post(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
+      const like = await likeService.addLike(postId, req.user!.id);
+      if (!like) {
+        res.status(409).send("User has already liked this post");
         return;
       }
-
-      const like = await likeService.addLike(postId, req.user.id);
       res.status(201).send(like);
     } catch (e: any) {
-      // Handle duplicate like (unique constraint violation)
-      if (e.name === "SequelizeUniqueConstraintError") {
-        res.status(409).send("User has already liked this post");
-      } else {
-        res.status(500).send(e.message);
-      }
+      res.status(500).send(e.message);
     }
   }
 );
@@ -161,12 +150,7 @@ likesController.delete(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const removed = await likeService.removeLike(postId, req.user.id);
+      const removed = await likeService.removeLike(postId, req.user!.id);
       if (removed) {
         res.status(200).send({ success: true });
       } else {

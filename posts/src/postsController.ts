@@ -4,10 +4,7 @@ import { PostService } from "./postsService";
 import { Post } from "./postsModels";
 
 const postService: PostService = new PostService();
-
 export const postsController: Router = express.Router();
-
-type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
 
 interface AuthTokenPayload {
   id: number;
@@ -15,9 +12,16 @@ interface AuthTokenPayload {
   email: string;
 }
 
+type AuthedRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = 
+  Request<P, ResBody, ReqBody, ReqQuery> & { user?: AuthTokenPayload };
+
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
-async function authenticate(req: AuthedRequest, res: Response, next: NextFunction) {
+async function authenticate(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -80,12 +84,7 @@ postsController.post(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const post = await postService.createPost(title, text, req.user.id, topics);
+      const post = await postService.createPost(title, text, req.user!.id, topics);
       res.status(201).send(post);
     } catch (e: any) {
       res.status(500).send(e.message);
@@ -101,12 +100,7 @@ postsController.get(
     res: Response<{ count: number } | string>
   ) => {
     try {
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const count = await postService.countByAuthor(req.user.id);
+      const count = await postService.countByAuthor(req.user!.id);
       res.status(200).send({ count });
     } catch (e: any) {
       res.status(500).send(e.message);
@@ -129,12 +123,7 @@ postsController.delete(
         return;
       }
 
-      if (!req.user?.id) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-
-      const deleted = await postService.deletePost(postId, req.user.id);
+      const deleted = await postService.deletePost(postId, req.user!.id);
       
       if (!deleted) {
         res.status(404).send("Post not found or unauthorized");

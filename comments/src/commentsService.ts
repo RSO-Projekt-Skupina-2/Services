@@ -4,16 +4,17 @@ import { Comment } from './commentsModels';
 
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL;
 
+async function getUserName(userId: number): Promise<string> {
+  try {
+    const response = await axios.get(`${USERS_SERVICE_URL}/users/${userId}`);
+    return response.data.username || String(userId);
+  } catch (error) {
+    console.error(`Failed to fetch username for user ${userId}:`, error);
+    return String(userId);
+  }
+}
+
 export class CommentService {
-    private async getUserName(userId: number): Promise<string> {
-        try {
-            const response = await axios.get(`${USERS_SERVICE_URL}/users/${userId}`);
-            return response.data.username || String(userId);
-        } catch (error) {
-            console.error(`Failed to fetch username for user ${userId}:`, error);
-            return String(userId);
-        }
-    }
 
     async getCommentsByPost(postId: number): Promise<Comment[]> {
         const comments = await CommentModel.findAll({
@@ -22,7 +23,7 @@ export class CommentService {
         });
 
         const enriched = await Promise.all(comments.map(async (c) => {
-            const authorName = await this.getUserName(c.userId);
+            const authorName = await getUserName(c.userId);
             return {
                 id: c.id,
                 postId: c.postId,
@@ -38,7 +39,7 @@ export class CommentService {
 
     async createComment(postId: number, userId: number, text: string): Promise<Comment> {
         const comment = await CommentModel.create({ postId, userId, text });
-        const authorName = await this.getUserName(userId);
+        const authorName = await getUserName(userId);
 
         return {
             id: comment.id,

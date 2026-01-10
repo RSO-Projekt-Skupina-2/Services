@@ -1,15 +1,11 @@
 import { app, initializeApp } from "./start";
-import { PostService } from "./postsService";
 
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT) : 8080;
-
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 async function bootstrap() {
   try {
-    // Initialize database
     await initializeApp();
 
-    // Start server
     app.listen(PORT, () => {
       console.log(`Posts service listening on port ${PORT}`);
     });
