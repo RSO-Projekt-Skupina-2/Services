@@ -45,23 +45,6 @@ async function authenticate(
   }
 }
 
-// Get like count for a post
-likesController.get(
-  "/post/:postId/count",
-  async (
-    req: Request<{ postId: string }>,
-    res: Response<{ count: number } | string>
-  ) => {
-    try {
-      const postId = parseInt(req.params.postId);
-      const count = await likeService.getLikeCount(postId);
-      res.status(200).send({ count });
-    } catch (e: any) {
-      res.status(500).send(e.message);
-    }
-  }
-);
-
 // Get how many likes current user has given
 likesController.get(
   "/user/count",
