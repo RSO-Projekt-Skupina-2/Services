@@ -1,10 +1,27 @@
-"# MicroHub Backend Services
+# MicroHub Backend Services
 
 Microservices backend for the MicroHub social media platform.
+
+Link to frontend repository: https://github.com/RSO-Projekt-Skupina-2/MicroHub
 
 ## Architecture
 
 This is a microservices architecture built with Node.js, TypeScript, Express.js, and PostgreSQL. Services communicate via HTTP/REST and share a PostgreSQL database.
+
+## Quick Start
+
+```bash
+# Start all services and database
+docker-compose up --build
+
+# Services available at:
+# http://localhost:3000 (Posts)
+# http://localhost:3001 (Likes)
+# http://localhost:3002 (Users)
+# http://localhost:3003 (Comments)
+# http://localhost:3004 (Profile)
+# http://localhost:3005 (Moderation)
+```
 
 ### Services Overview
 
@@ -39,20 +56,7 @@ Profile Service → Users, Posts, Comments, Likes
 - **Swagger UI** - API documentation
 - **Docker & Docker Compose** - Containerization
 
-## Quick Start
 
-```bash
-# Start all services and database
-docker-compose up --build
-
-# Services available at:
-# http://localhost:3000 (Posts)
-# http://localhost:3001 (Likes)
-# http://localhost:3002 (Users)
-# http://localhost:3003 (Comments)
-# http://localhost:3004 (Profile)
-# http://localhost:3005 (Moderation)
-```
 
 ## Environment Variables
 
@@ -194,6 +198,21 @@ curl http://localhost:3000/metrics
 - Node.js process metrics (CPU, memory, heap)
 - Event loop lag
 
+## Health Checks
+
+All microservices expose health check endpoints for Kubernetes monitoring:
+
+### Endpoints
+
+**`GET /health`** - Liveness probe
+- Returns HTTP 200 if service is running
+- Kubernetes restarts pod if this fails repeatedly
+
+**`GET /ready`** - Readiness probe  
+- Returns HTTP 200 if service is ready to handle requests
+- Returns HTTP 503 if service is not ready (e.g., database disconnected)
+- Kubernetes stops routing traffic to pod if this fails
+
 ## Development
 
 ### Project Structure
@@ -223,18 +242,21 @@ Services/
 ### Running Individual Services
 
 ```bash
-cd Services/users
+cd Services/users # Or some other service
 npm install
 npm run dev  
 ```
 
 **Note:** Requires PostgreSQL running and proper environment variables.
 
-### Docker Commands
+## CI/CD Pipeline
 
-```bash
-# Build and start
-docker-compose up --build
+GitHub Actions automatically builds and deploys to Azure Kubernetes Service (AKS) on every push to main.
 
-```
+### Required Secrets
+Set these in GitHub repository settings - Secrets:
+- `ACR_LOGIN_SERVER` - Azure Container Registry URL
+- `ACR_USERNAME` - ACR username
+- `ACR_PASSWORD` - ACR password
+- `KUBECONFIG_DATA` - Base64 encoded kubeconfig
 
