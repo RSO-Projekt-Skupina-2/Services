@@ -58,7 +58,7 @@ app.use(
   })
 );
 app.use(express.json());
-app.use("/", likesController);
+app.use("/likes", likesController);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Metrics endpoint

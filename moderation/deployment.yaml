@@ -36,6 +36,8 @@ spec:
           env:
             - name: DATABASE_URL
               value: postgresql://postgres:postgres@microhub-postgres.ingress.svc.cluster.local:5432/microservices
+            - name: NODE_ENV
+              value: development
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
