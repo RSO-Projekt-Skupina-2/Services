@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { app, initializeApp } from "./start";
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3005;
 
 async function bootstrap() {
   try {

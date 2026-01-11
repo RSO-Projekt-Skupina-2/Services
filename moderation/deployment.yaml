@@ -17,7 +17,7 @@ spec:
         - name: microhub-moderation
           image: microhubacr.azurecr.io/microhub-moderation:7.0
           ports:
-            - containerPort: 3000
+            - containerPort: 3005
               name: http
           livenessProbe:
             httpGet:
@@ -55,5 +55,5 @@ spec:
     app: microhub-moderation
   ports:
     - name: http
-      port: 3000
-      targetPort: 3000
+      port: 3005
+      targetPort: 3005
