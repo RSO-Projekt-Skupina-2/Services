@@ -249,6 +249,156 @@ npm run dev
 
 **Note:** Requires PostgreSQL running and proper environment variables.
 
+## Deployment
+
+This section explains how to deploy the MicroHub backend services using Docker, Azure Container Registry (ACR), and Azure Kubernetes Service (AKS).
+
+### Prerequisites
+
+- Azure account with AKS cluster provisioned
+- Azure Container Registry (ACR) set up
+- `kubectl` installed and configured
+- `docker` installed and configured
+- GitHub repository with secrets configured (see **CI/CD Pipeline** section)
+
+---
+
+### Docker Build
+
+Each service has its own Dockerfile. Build all services locally or via CI/CD:
+
+```bash
+# Navigate to service directory (example: Users)
+cd Services/users
+
+# Build Docker image
+docker build -t users-service:latest .
+
+# Tag for ACR
+docker tag users-service:latest <ACR_LOGIN_SERVER>/users-service:latest
+
+# Push to ACR
+docker push <ACR_LOGIN_SERVER>/users-service:latest
+
+Repeat for other services: `posts`, `comments`, `likes`, `profile`, `moderation`.
+
+---
+
+### Kubernetes Deployment
+
+1. Apply service-specific deployments:
+
+```bash
+kubectl apply -f users/deployment.yaml
+kubectl apply -f posts/deployment.yaml
+kubectl apply -f comments/deployment.yaml
+kubectl apply -f likes/deployment.yaml
+kubectl apply -f profile/deployment.yaml
+kubectl apply -f moderation/deployment.yaml
+```
+
+* Each Deployment specifies replicas, container image, ports, and environment variables.
+* Health (`/health`) and readiness (`/ready`) endpoints are configured for Kubernetes probes.
+
+2. Create corresponding Services:
+
+```bash
+kubectl apply -f users/service.yaml
+kubectl apply -f posts/service.yaml
+kubectl apply -f comments/service.yaml
+kubectl apply -f likes/service.yaml
+kubectl apply -f profile/service.yaml
+kubectl apply -f moderation/service.yaml
+```
+
+* Each Service is typically `ClusterIP` type to expose pods within the cluster.
+* Port numbers correspond to each microservice (3000–3005).
+
+3. Apply Ingress:
+
+```bash
+kubectl apply -f ingress.yaml
+```
+
+* Routes HTTP traffic from `/posts`, `/users`, `/comments`, `/likes`, `/profile`, `/moderation` to the correct services.
+* Ensure the catch-all route `/` is used by the frontend service to avoid conflicts.
+
+---
+
+### Verifying Deployment
+
+* Check pods, services, and ingress:
+
+```bash
+kubectl get pods -n ingress
+kubectl get svc -n ingress
+kubectl get ingress -n ingress
+```
+
+* Access services via Ingress external IP:
+
+```
+http://<INGRESS_URL>/users
+http://<INGRESS_URL>/posts
+...
+```
+
+---
+
+### Updating Deployment
+
+* Update Docker image:
+
+```bash
+docker build -t <ACR_LOGIN_SERVER>/users-service:<TAG> .
+docker push <ACR_LOGIN_SERVER>/users-service:<TAG>
+```
+
+* Update Kubernetes Deployment:
+
+```bash
+kubectl set image deployment/users-service users-service=<ACR_LOGIN_SERVER>/users-service:<TAG> -n ingress
+kubectl rollout status deployment/users-service -n ingress
+```
+
+* Verify rollout:
+
+```bash
+kubectl get pods -n ingress
+```
+
+---
+
+### Scaling Services
+
+* Adjust replicas in deployment.yaml or scale directly:
+
+```bash
+kubectl scale deployment/users-service --replicas=3 -n ingress
+```
+
+* Recommended to scale database-backed services carefully to avoid connection pool limits.
+
+---
+
+### Environment Variables in Kubernetes
+
+All services require environment variables configured in `deployment.yaml`:
+
+* `DATABASE_URL` – PostgreSQL connection string
+* `JWT_SECRET` – Secret for signing JWTs
+* `OPENAI_API_KEY` – OpenAI key for Moderation service (should be stored as Kubernetes secret)
+* Service URLs (`USERS_SERVICE_URL`, `POSTS_SERVICE_URL`, etc.)
+
+---
+
+### Notes
+
+* All services expose `/health` and `/ready` endpoints for Kubernetes monitoring.
+* Prometheus metrics are exposed at `/metrics` for monitoring and alerting.
+* Make sure the backend services are deployed before the frontend to avoid API errors.
+
+
 ## CI/CD Pipeline
 
 GitHub Actions automatically builds and deploys to Azure Kubernetes Service (AKS) on every push to main.
